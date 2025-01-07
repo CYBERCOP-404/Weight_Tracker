@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weight Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(45deg, #f39c12, #8e44ad, #3498db);
+      background-size: 400% 400%;
+      animation: colorChange 10s infinite;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    @keyframes colorChange {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input[type="number"],
+    input[type="datetime-local"],
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 8px 10px;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .graph-btn {
+      background-color: #ff9800;
+    }
+
+    .graph-btn:hover {
+      background-color: #e65100;
+    }
+
+    .hide-btn {
+      background-color: #28a745;
+    }
+
+    .hide-btn:hover {
+      background-color: #218838;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .popup h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+    }
+
+    #weightTable img {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #weightTable th,
+    #weightTable td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    #weightTable th {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Weight Tracker</h1>
+    <div class="form-group">
+      <label for="datetime">Date & Time:</label>
+      <input type="datetime-local" id="datetime">
+    </div>
+    <div class="form-group">
+      <label for="weight">Weight (kg):</label>
+      <input type="number" id="weight" placeholder="e.g., 72">
+    </div>
+    <div class="form-group">
+      <label for="dayNote">Note for the Day:</label>
+      <input type="text" id="dayNote" placeholder="Write your note here">
+    </div>
+    <div class="button-group">
+      <button id="saveBtn">
+        <img src="https://cdn-icons-png.flaticon.com/128/8317/8317116.png" alt="Save Icon" width="16" height="16">
+      </button>
+      <button class="graph-btn" id="graphBtn">
+        <img src="https://cdn-icons-png.flaticon.com/128/478/478544.png" alt="Graph Icon" width="16" height="16">
+      </button>
+      <button class="hide-btn" id="hideTableBtn">
+        <img src="https://cdn-icons-png.flaticon.com/128/565/565655.png" alt="Hide Icon" width="16" height="16">
+      </button>
+      <button id="downloadPngBtn">
+        <img src="https://cdn-icons-png.flaticon.com/128/2381/2381981.png" alt="Download PNG Icon" width="16" height="16">
+      </button>
+    </div>
+    <table id="weightTable" class="hidden">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Weight (kg)</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Weight records will be displayed here -->
+      </tbody>
+    </table>
+    <footer style="text-align: center; margin-top: 20px; background-color: rgb(224, 220, 220); border-radius: 15px;">
+        &copy; 2024 <span>MD. NAHIDUL ISLAM</span> ❤️‍🩹
+      </footer>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <div class="popup" id="graphPopup">
+    <h2>Weight Graph</h2>
+    <canvas id="weightGraph"></canvas>
+    <button id="closeGraphBtn">Close</button>
+</div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    const saveBtn = document.getElementById('saveBtn');
+    const graphBtn = document.getElementById('graphBtn');
+    const closeGraphBtn = document.getElementById('closeGraphBtn');
+    const hideTableBtn = document.getElementById('hideTableBtn');
+    const weightTable = document.getElementById('weightTable');
+    const graphPopup = document.getElementById('graphPopup');
+    const overlay = document.getElementById('overlay');
+    const datetimeInput = document.getElementById('datetime');
+    const weightInput = document.getElementById('weight');
+    const dayNoteInput = document.getElementById('dayNote');
+    const weightTableBody = weightTable.querySelector('tbody');
+    const weightGraph = document.getElementById('weightGraph');
+    const downloadPngBtn = document.getElementById('downloadPngBtn');
+    const weightData = [];
+
+    function autoFillDate() {
+      const now = new Date();
+      const isoString = now.toISOString().slice(0, 16);
+      datetimeInput.value = isoString;
+    }
+
+    function renderTable() {
+      weightTableBody.innerHTML = '';
+      weightData.forEach(({ datetime, weight, note }) => {
+        weightTableBody.innerHTML += `
+          <tr>
+            <td>${datetime}</td>
+            <td>${weight} kg</td>
+            <td>${note}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function showGraph() {
+      const labels = weightData.map(entry => entry.datetime);
+      const data = weightData.map(entry => entry.weight);
+
+      new Chart(weightGraph, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Weight (kg)',
+            data,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+        }
+      });
+
+      overlay.style.display = 'block';
+      graphPopup.style.display = 'block';
+    }
+
+    function downloadPng() {
+      html2canvas(weightTable, {
+        backgroundColor: "#fff",  // Ensures white background
+        logging: false,
+        useCORS: true,
+        scale: 2  // Higher scale for better resolution
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'weight_tracker.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const datetime = datetimeInput.value;
+      const weight = parseFloat(weightInput.value);
+      const note = dayNoteInput.value;
+
+      if (datetime && !isNaN(weight)) {
+        weightData.push({ datetime, weight, note });
+        renderTable();
+        weightTable.classList.remove('hidden');
+      } else {
+        alert('Please enter a valid date, time, and weight.');
+      }
+    });
+
+    hideTableBtn.addEventListener('click', () => {
+      if (weightTable.classList.contains('hidden')) {
+        weightTable.classList.remove('hidden');
+        hideTableBtn.textContent = 'hide';
+      } else {
+        weightTable.classList.add('hidden');
+        hideTableBtn.textContent = 'unhide';
+      }
+    });
+
+    graphBtn.addEventListener('click', showGraph);
+    closeGraphBtn.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      graphPopup.style.display = 'none';
+    });
+
+    downloadPngBtn.addEventListener('click', downloadPng);
+
+    autoFillDate();
+  </script>
+</body>
+</html>
