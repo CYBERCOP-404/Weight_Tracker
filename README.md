@@ -1,2 +1,1 @@
-# Weight_Tracker
-ONLY FOR ADMIN
+# Site:~ https://cybercop-404.github.io/Weight_Tracker/
